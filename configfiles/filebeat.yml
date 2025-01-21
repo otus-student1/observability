@@ -1,0 +1,49 @@
+
+filebeat.inputs:
+  id: my-filestream-id
+  enabled: false
+  paths:
+    - /var/log/*.log
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/php7.4-fpm.log
+  fields:
+    service: php-fpm
+  fields_under_root: true
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+filebeat.modules:
+  - module: nginx
+    access:
+      enabled: true
+      var.paths: ["/var/log/nginx/access.log"]
+    error:
+      enabled: true
+      var.paths: ["/var/log/nginx/error.log"]
+
+  - module: mysql
+    enabled: true
+    error:
+      enabled: true
+      var.paths: ["/var/log/mysql/error.log"]
+    slowlog:
+      enabled: true
+      var.paths: ["/var/log/mysql/mysql-slow.log"] 
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+setup.kibana:
+
+output.elasticsearch:
+  hosts: ["192.168.81.153:9200"]
+  preset: balanced
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~

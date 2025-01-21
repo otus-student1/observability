@@ -1,0 +1,41 @@
+metricbeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+
+  reload.enabled: false
+
+metricbeat.modules:
+  - module: system
+    period: 10s
+    metricsets:
+      - cpu
+      - load
+      - memory
+      - network
+      - process
+      - process_summary
+    enabled: true
+  - module: nginx
+    metricsets: ["stubstatus"]
+    enabled: true
+    period: 10s
+    hosts: ["http://localhost/status"]
+
+  - module: mysql
+    metricsets: ["status"]
+    enabled: true
+    period: 10s
+    hosts: ["wpuser:wp_password@tcp(localhost:3306)/"]
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.codec: best_compression
+setup.kibana:
+output.elasticsearch:
+  hosts: ["192.168.81.153:9200"]
+
+  preset: balanced
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
